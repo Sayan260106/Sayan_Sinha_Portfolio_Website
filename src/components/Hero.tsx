@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { ChevronRight, Mail } from 'lucide-react';
 import { PERSONAL_INFO } from '../constants';
 import ThreeCanvas from './ThreeCanvas';
+import Magnetic from './Magnetic';
 
 export default function Hero() {
   return (
@@ -39,25 +40,29 @@ export default function Hero() {
           </p>
           
           <div className="flex flex-wrap gap-4">
-            <motion.a
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              href="#projects"
-              className="px-8 py-4 rounded-full bg-emerald-500 text-zinc-950 font-bold flex items-center gap-2 hover:bg-emerald-400 transition-colors"
-            >
-              View Projects
-              <ChevronRight size={18} />
-            </motion.a>
+            <Magnetic strength={0.2}>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                href="#projects"
+                className="px-8 py-4 rounded-full bg-emerald-500 text-zinc-950 font-bold flex items-center gap-2 hover:bg-emerald-400 transition-colors"
+              >
+                View Projects
+                <ChevronRight size={18} />
+              </motion.a>
+            </Magnetic>
             
-            <motion.a
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              href="#contact"
-              className="px-8 py-4 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-100 font-bold flex items-center gap-2 hover:bg-zinc-800 transition-colors"
-            >
-              Contact Me
-              <Mail size={18} />
-            </motion.a>
+            <Magnetic strength={0.2}>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                href="#contact"
+                className="px-8 py-4 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-100 font-bold flex items-center gap-2 hover:bg-zinc-800 transition-colors"
+              >
+                Contact Me
+                <Mail size={18} />
+              </motion.a>
+            </Magnetic>
           </div>
         </motion.div>
         

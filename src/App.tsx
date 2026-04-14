@@ -10,33 +10,42 @@ import Projects from './components/Projects';
 import Skills from './components/Skills';
 import Blog from './components/Blog';
 import Contact from './components/Contact';
-import { motion, useScroll, useSpring } from 'motion/react';
+import LoadingScreen from './components/LodingScreen';
+import CustomCursor from './components/CustomCursor';
+import { AnimatePresence } from 'motion/react';
+import { useState, useEffect } from 'react';
 
 export default function App() {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001
-  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="relative">
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-emerald-500 origin-left z-[60]"
-        style={{ scaleX }}
-      />
-      
-      <Navbar />
-      
-      <main>
-        <Hero />
-        <About />
-        <Projects />
-        <Skills />
-        <Blog />
-        <Contact />
-      </main>
+      <AnimatePresence mode="wait">
+        {isLoading ? (
+          <LoadingScreen key="loader" />
+        ) : (
+          <>
+            <CustomCursor />
+            <Navbar />
+            <main>
+              <Hero />
+              <About />
+              <Projects />
+              <Skills />
+              <Blog />
+              <Contact />
+            </main>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

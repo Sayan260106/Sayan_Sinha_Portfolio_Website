@@ -22,7 +22,13 @@ export default function Projects() {
   return (
     <section id="projects" className="py-24 px-6 bg-zinc-950">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6"
+        >
           <div>
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-500 mb-4">Portfolio</h2>
             <h3 className="text-4xl md:text-5xl font-display font-bold">
@@ -32,16 +38,36 @@ export default function Projects() {
           <p className="text-zinc-400 max-w-md">
             A collection of my recent work in web development, machine learning, and interactive design. Click on a card to see more details.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {PROJECTS.map((project, index) => (
             <motion.div
               key={project.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
+              initial="initial"
+              whileInView="animate"
+              whileHover="hover"
+              whileTap={{ scale: 0.98 }}
+              variants={{
+                initial: { opacity: 0, y: 30 },
+                animate: { 
+                  opacity: 1, 
+                  y: 0,
+                  transition: {
+                    duration: 0.8,
+                    delay: index * 0.1,
+                    ease: [0.215, 0.61, 0.355, 1]
+                  }
+                },
+                hover: {
+                  y: -10,
+                  transition: {
+                    duration: 0.3,
+                    ease: "easeOut"
+                  }
+                }
+              }}
+              viewport={{ once: true, margin: "-100px" }}
               onClick={() => setSelectedProject(project)}
               className={cn(
                 "group relative glass rounded-3xl overflow-hidden p-8 flex flex-col h-full cursor-pointer hover:border-emerald-500/30 transition-all",
@@ -86,7 +112,11 @@ export default function Projects() {
               <div className="mt-auto pt-6 border-t border-zinc-800 flex items-center justify-between">
                 <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">{project.duration}</span>
                 <motion.button
-                  whileHover={{ x: 5 }}
+                  variants={{
+                    initial: { opacity: 0, x: 20 },
+                    hover: { opacity: 1, x: 0 }
+                  }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
                   className="text-xs font-bold flex items-center gap-1 text-emerald-500"
                 >
                   View Details <ChevronRight size={14} />
