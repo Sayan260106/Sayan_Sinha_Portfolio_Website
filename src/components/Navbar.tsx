@@ -52,6 +52,10 @@ export default function Navbar() {
               <Magnetic key={item.name} strength={0.2}>
                 <a
                   href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.querySelector(item.href)?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   className="text-sm font-medium text-zinc-400 hover:text-zinc-100 transition-colors px-2 py-1"
                 >
                   {item.name}

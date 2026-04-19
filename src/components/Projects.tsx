@@ -30,12 +30,12 @@ export default function Projects() {
           className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6"
         >
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-500 mb-4">Portfolio</h2>
-            <h3 className="text-4xl md:text-5xl font-display font-bold">
-              Featured <span className="text-zinc-500">Projects.</span>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">Portfolio</h2>
+            <h3 className="text-4xl md:text-5xl font-display font-bold text-white">
+              Featured <span className="text-teal-400 drop-shadow-[0_0_12px_rgba(20,184,166,0.3)]">Projects.</span>
             </h3>
           </div>
-          <p className="text-zinc-400 max-w-md">
+          <p className="text-zinc-300 max-w-md font-medium">
             A collection of my recent work in web development, machine learning, and interactive design. Click on a card to see more details.
           </p>
         </motion.div>
@@ -92,11 +92,11 @@ export default function Projects() {
                 </div>
               </div>
 
-              <h4 className="text-2xl font-display font-bold mb-4 group-hover:text-emerald-400 transition-colors">
+              <h4 className="text-2xl font-display font-bold mb-4 text-white group-hover:text-emerald-400 transition-colors">
                 {project.title}
               </h4>
               
-              <p className="text-zinc-400 text-sm mb-6 flex-grow leading-relaxed">
+              <p className="text-zinc-300 text-sm mb-6 flex-grow leading-relaxed font-medium">
                 {project.description}
               </p>
 

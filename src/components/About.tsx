@@ -12,12 +12,12 @@ export default function About() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-500 mb-4">About Me</h2>
-            <h3 className="text-4xl md:text-5xl font-display font-bold mb-8">
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">About Me</h2>
+            <h3 className="text-4xl md:text-5xl font-display font-bold mb-8 text-white">
               Passionate about <br />
-              <span className="text-zinc-500">Solving Problems.</span>
+              <span className="text-teal-400 drop-shadow-[0_0_12px_rgba(20,184,166,0.3)]">Solving Problems.</span>
             </h3>
-            <p className="text-zinc-400 text-lg leading-relaxed mb-8">
+            <p className="text-zinc-300 text-lg leading-relaxed mb-8 font-medium">
               {PERSONAL_INFO.about}
             </p>
             
@@ -49,11 +49,11 @@ export default function About() {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-blue-500 mb-8">Education</h2>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-400 mb-8 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">Education</h2>
             <div className="space-y-8">
               {EDUCATION.map((edu, index) => (
                 <div key={index} className="relative pl-8 border-l border-zinc-800">
-                  <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                  <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
                   <p className="text-xs font-bold text-zinc-500 mb-1">{edu.duration}</p>
                   <h4 className="text-lg font-bold mb-1">{edu.degree}</h4>
                   <p className="text-blue-400 text-sm font-medium mb-2">{edu.institution}</p>

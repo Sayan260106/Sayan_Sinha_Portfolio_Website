@@ -106,25 +106,33 @@ function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
 
-    if (mainRef.current) mainRef.current.rotation.y = t * 0.035;
-    if (coreRef.current) coreRef.current.rotation.y = t * 0.07;
+    if (mainRef.current) mainRef.current.rotation.y = t * 0.025; // Slower rotation
+    if (coreRef.current) coreRef.current.rotation.y = t * 0.05;
 
     /* ── Scroll-driven camera fly-through ── */
     const scroll    = scrollRef.current;
     const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
     const pct       = Math.min(scroll / maxScroll, 1);
 
-    // 0% scroll: hovering above galaxy · 100% scroll: punched through the core
-    const targetZ   = THREE.MathUtils.lerp(20, -8, pct);
-    const targetY   = THREE.MathUtils.lerp(5, -1, pct);
-    const targetFov = THREE.MathUtils.lerp(58, 105, pct);
+    // Mouse parallax for extra life
+    const mouseX = (state.mouse.x * 2);
+    const mouseY = (state.mouse.y * 2);
 
-    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.055);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.055);
+    // Hovering at 20z -> Ending close to center (2z)
+    const targetZ   = THREE.MathUtils.lerp(24, 2.5, pct);
+    const targetY   = THREE.MathUtils.lerp(6, 0.2, pct);
+    const targetFov = THREE.MathUtils.lerp(55, 95, pct);
+
+    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.035); // Slower lerp for zoom
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY + (mouseY * 0.1), 0.035);
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouseX * 0.25, 0.035);
 
     const cam = camera as THREE.PerspectiveCamera;
-    cam.fov   = THREE.MathUtils.lerp(cam.fov, targetFov, 0.055);
+    cam.fov   = THREE.MathUtils.lerp(cam.fov, targetFov, 0.035);
     cam.updateProjectionMatrix();
+
+    // Look slightly towards center
+    camera.lookAt(0, 0, 0);
   });
 
   return (

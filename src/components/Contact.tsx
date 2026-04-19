@@ -9,13 +9,13 @@ export default function Contact() {
         <div className="glass rounded-[40px] overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <div className="p-8 md:p-16 lg:border-r border-zinc-800">
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-500 mb-4">Contact</h2>
-              <h3 className="text-4xl md:text-5xl font-display font-bold mb-8">
+              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">Contact</h2>
+              <h3 className="text-4xl md:text-5xl font-display font-bold mb-8 text-white">
                 Let's build <br />
-                <span className="text-zinc-500">Something Great.</span>
+                <span className="text-teal-400 drop-shadow-[0_0_12px_rgba(20,184,166,0.3)]">Something Great.</span>
               </h3>
               
-              <p className="text-zinc-400 text-lg mb-12">
+              <p className="text-zinc-300 text-lg mb-12 font-medium">
                 I'm always open to discussing new projects, creative ideas or opportunities to be part of your visions.
               </p>
 
@@ -66,7 +66,7 @@ export default function Contact() {
                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Full Name</label>
                     <input 
                       type="text" 
-                      placeholder="John Doe"
+                      placeholder="Full Name"
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors"
                     />
                   </div>
@@ -74,7 +74,7 @@ export default function Contact() {
                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Email Address</label>
                     <input 
                       type="email" 
-                      placeholder="john@example.com"
+                      placeholder="name@example.com"
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors"
                     />
                   </div>

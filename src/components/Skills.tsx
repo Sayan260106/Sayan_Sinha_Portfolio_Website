@@ -8,9 +8,9 @@ export default function Skills() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-20">
           <div className="lg:col-span-2">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-blue-500 mb-4">Expertise</h2>
-            <h3 className="text-4xl md:text-5xl font-display font-bold mb-16">
-              Technical <span className="text-zinc-500">Stack.</span>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">Expertise</h2>
+            <h3 className="text-4xl md:text-5xl font-display font-bold mb-16 text-white">
+              Technical <span className="text-teal-400 drop-shadow-[0_0_12px_rgba(20,184,166,0.3)]">Stack.</span>
             </h3>
 
             <div className="space-y-20">
@@ -71,8 +71,8 @@ export default function Skills() {
           </div>
 
           <div className="lg:pt-20">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-amber-500 mb-4">Achievements</h2>
-            <h3 className="text-2xl font-display font-bold mb-10">Certifications</h3>
+            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-400 mb-4 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">Achievements</h2>
+            <h3 className="text-2xl font-display font-bold mb-10 text-white leading-tight">Certifications</h3>
             
             <div className="space-y-4">
               {CERTIFICATIONS.map((cert, index) => (
