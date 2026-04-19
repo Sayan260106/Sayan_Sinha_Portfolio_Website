@@ -29,13 +29,13 @@ export default function Hero() {
             Open to Opportunities
           </motion.div>
           
-          <h1 className="text-6xl md:text-8xl font-display font-bold tracking-tight leading-[0.9] mb-6 text-white drop-shadow-2xl">
+          <h1 className="text-6xl md:text-8xl font-display font-bold tracking-tight leading-[0.9] mb-6">
             Building the <br />
-            <span className="text-gradient drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">Future</span> with Code.
+            <span className="text-gradient">Future</span> with Code.
           </h1>
           
-          <p className="text-zinc-300 text-lg md:text-xl max-w-lg mb-10 leading-relaxed font-medium drop-shadow-lg">
-            Hi, I'm <span className="text-white font-bold">{PERSONAL_INFO.name}</span>. 
+          <p className="text-zinc-400 text-lg md:text-xl max-w-lg mb-10 leading-relaxed">
+            Hi, I'm <span className="text-zinc-100 font-medium">{PERSONAL_INFO.name}</span>. 
             A {PERSONAL_INFO.role} passionate about AI, Machine Learning, and creating immersive web experiences.
           </p>
           
@@ -45,11 +45,7 @@ export default function Hero() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 href="#projects"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.querySelector('#projects')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-8 py-4 rounded-full bg-emerald-500 text-zinc-950 font-bold flex items-center gap-2 hover:bg-emerald-400 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                className="px-8 py-4 rounded-full bg-emerald-500 text-zinc-950 font-bold flex items-center gap-2 hover:bg-emerald-400 transition-colors"
               >
                 View Projects
                 <ChevronRight size={18} />
@@ -61,11 +57,7 @@ export default function Hero() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 href="#contact"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-8 py-4 rounded-full bg-zinc-900 border border-zinc-700 text-zinc-100 font-bold flex items-center gap-2 hover:bg-zinc-800 transition-colors shadow-xl"
+                className="px-8 py-4 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-100 font-bold flex items-center gap-2 hover:bg-zinc-800 transition-colors"
               >
                 Contact Me
                 <Mail size={18} />

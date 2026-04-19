@@ -2,11 +2,24 @@ import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+// Returns a lerp factor that is framerate-independent.
+// `speed` behaves like the old per-frame factor but is now normalised to 60 fps.
+function dlerp(speed: number, delta: number) {
+  return 1 - Math.pow(1 - speed, delta * 60);
+}
+
 function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
-  const mainRef  = useRef<THREE.Points>(null);
-  const coreRef  = useRef<THREE.Points>(null);
-  const dustRef  = useRef<THREE.Points>(null);
+  const mainRef = useRef<THREE.Points>(null);
+  const coreRef = useRef<THREE.Points>(null);
+  const dustRef = useRef<THREE.Points>(null);
   const { camera } = useThree();
+
+  // Smoothed state tracked across frames (avoids re-renders)
+  const smooth = useRef({
+    scrollPct: 0,   // lerped scroll progress  0→1
+    mouseX:    0,   // lerped mouse X
+    mouseY:    0,   // lerped mouse Y
+  });
 
   /* ── Main spiral arms ── */
   const mainGeo = useMemo(() => {
@@ -17,12 +30,12 @@ function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
     const positions = new Float32Array(COUNT * 3);
     const colors    = new Float32Array(COUNT * 3);
 
-    const c1 = new THREE.Color('#ff6b35'); // warm core
-    const c2 = new THREE.Color('#4361ee'); // mid blue
-    const c3 = new THREE.Color('#0a1445'); // deep outer
+    const c1 = new THREE.Color('#ff6b35');
+    const c2 = new THREE.Color('#4361ee');
+    const c3 = new THREE.Color('#0a1445');
 
     for (let i = 0; i < COUNT; i++) {
-      const i3 = i * 3;
+      const i3     = i * 3;
       const r      = Math.random() * RADIUS;
       const spin   = r * SPIN;
       const branch = ((i % BRANCHES) / BRANCHES) * Math.PI * 2;
@@ -82,7 +95,7 @@ function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
     const colors    = new Float32Array(COUNT * 3);
 
     for (let i = 0; i < COUNT; i++) {
-      const i3 = i * 3;
+      const i3    = i * 3;
       const theta = Math.random() * Math.PI * 2;
       const phi   = Math.acos(2 * Math.random() - 1);
       const r     = 20 + Math.random() * 30;
@@ -91,8 +104,8 @@ function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
       positions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       positions[i3 + 2] = r * Math.cos(phi);
 
-      const brightness   = 0.4 + Math.random() * 0.6;
-      colors[i3] = brightness * 0.8;
+      const brightness  = 0.4 + Math.random() * 0.6;
+      colors[i3]     = brightness * 0.8;
       colors[i3 + 1] = brightness * 0.85;
       colors[i3 + 2] = brightness;
     }
@@ -103,35 +116,45 @@ function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
     return geo;
   }, []);
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  // delta is provided by r3f – seconds since last frame, framerate-independent
+  useFrame((state, delta) => {
+    // Clamp delta to avoid huge jumps after tab-switch / sleep
+    const dt = Math.min(delta, 0.1);
+    const t  = state.clock.getElapsedTime();
+    const s  = smooth.current;
 
-    if (mainRef.current) mainRef.current.rotation.y = t * 0.025; // Slower rotation
+    /* ── Galaxy rotation (unchanged – driven by elapsed time, always smooth) ── */
+    if (mainRef.current) mainRef.current.rotation.y = t * 0.025;
     if (coreRef.current) coreRef.current.rotation.y = t * 0.05;
 
-    /* ── Scroll-driven camera fly-through ── */
-    const scroll    = scrollRef.current;
-    const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
-    const pct       = Math.min(scroll / maxScroll, 1);
+    /* ── Smooth the raw scroll progress ── */
+    const maxScroll  = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+    const rawPct     = Math.min(scrollRef.current / maxScroll, 1);
+    // Slow decay (0.06 at 60fps ≈ very gentle glide)
+    s.scrollPct = THREE.MathUtils.lerp(s.scrollPct, rawPct, dlerp(0.06, dt));
 
-    // Mouse parallax for extra life
-    const mouseX = (state.mouse.x * 2);
-    const mouseY = (state.mouse.y * 2);
+    /* ── Smooth the mouse ── */
+    // state.mouse is already normalised –1…1; reduce influence to avoid jitter
+    s.mouseX = THREE.MathUtils.lerp(s.mouseX, state.mouse.x, dlerp(0.08, dt));
+    s.mouseY = THREE.MathUtils.lerp(s.mouseY, state.mouse.y, dlerp(0.08, dt));
 
-    // Hovering at 20z -> Ending close to center (2z)
-    const targetZ   = THREE.MathUtils.lerp(24, 2.5, pct);
-    const targetY   = THREE.MathUtils.lerp(6, 0.2, pct);
-    const targetFov = THREE.MathUtils.lerp(55, 95, pct);
+    /* ── Scroll-driven camera targets ── */
+    const pct      = s.scrollPct;
+    const targetZ  = THREE.MathUtils.lerp(24,  2.5, pct);
+    const targetY  = THREE.MathUtils.lerp(6,   0.2, pct) + s.mouseY * 0.1;
+    const targetX  = s.mouseX * 0.25;
+    const targetFov = THREE.MathUtils.lerp(55, 95,  pct);
 
-    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.035); // Slower lerp for zoom
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY + (mouseY * 0.1), 0.035);
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouseX * 0.25, 0.035);
+    /* ── Apply with framerate-independent lerp ── */
+    const camSpeed = dlerp(0.035, dt);
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX,   camSpeed);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY,   camSpeed);
+    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ,   camSpeed);
 
     const cam = camera as THREE.PerspectiveCamera;
-    cam.fov   = THREE.MathUtils.lerp(cam.fov, targetFov, 0.035);
+    cam.fov   = THREE.MathUtils.lerp(cam.fov, targetFov, camSpeed);
     cam.updateProjectionMatrix();
 
-    // Look slightly towards center
     camera.lookAt(0, 0, 0);
   });
 
