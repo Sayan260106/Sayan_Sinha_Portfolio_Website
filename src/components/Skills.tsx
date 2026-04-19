@@ -4,7 +4,7 @@ import { Award, CheckCircle2 } from 'lucide-react';
 
 export default function Skills() {
   return (
-    <section id="skills" className="py-24 px-6 bg-zinc-950">
+    <section id="skills" className="py-24 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
           <div className="lg:col-span-2">

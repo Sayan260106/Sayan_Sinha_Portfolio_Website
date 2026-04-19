@@ -4,7 +4,7 @@ import { PERSONAL_INFO } from '../constants';
 
 export default function Contact() {
   return (
-    <section id="contact" className="py-24 px-6 bg-zinc-950">
+    <section id="contact" className="py-24 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="glass rounded-[40px] overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2">

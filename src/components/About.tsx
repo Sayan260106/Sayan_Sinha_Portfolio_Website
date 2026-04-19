@@ -4,7 +4,7 @@ import { PERSONAL_INFO, EDUCATION } from '../constants';
 
 export default function About() {
   return (
-    <section id="about" className="py-24 px-6 bg-zinc-950">
+    <section id="about" className="py-24 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
           <motion.div
