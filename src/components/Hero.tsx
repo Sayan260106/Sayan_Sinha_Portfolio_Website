@@ -34,7 +34,7 @@ export default function Hero() {
             <span className="text-gradient">Future</span> with Code.
           </h1>
           
-          <p className="text-zinc-400 text-lg md:text-xl max-w-lg mb-10 leading-relaxed">
+          <p className="text-zinc-100 text-lg md:text-xl max-w-lg mb-10 leading-relaxed">
             Hi, I'm <span className="text-zinc-100 font-medium">{PERSONAL_INFO.name}</span>. 
             A {PERSONAL_INFO.role} passionate about AI, Machine Learning, and creating immersive web experiences.
           </p>

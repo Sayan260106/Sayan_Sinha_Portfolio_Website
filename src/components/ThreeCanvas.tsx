@@ -2,40 +2,58 @@ import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-// Returns a lerp factor that is framerate-independent.
-// `speed` behaves like the old per-frame factor but is now normalised to 60 fps.
-function dlerp(speed: number, delta: number) {
-  return 1 - Math.pow(1 - speed, delta * 60);
-}
-
 function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
-  const mainRef = useRef<THREE.Points>(null);
-  const coreRef = useRef<THREE.Points>(null);
-  const dustRef = useRef<THREE.Points>(null);
+  const mainRef  = useRef<THREE.Points>(null);
+  const coreRef  = useRef<THREE.Points>(null);
+  const dustRef  = useRef<THREE.Points>(null);
   const { camera } = useThree();
 
-  // Smoothed state tracked across frames (avoids re-renders)
-  const smooth = useRef({
-    scrollPct: 0,   // lerped scroll progress  0→1
-    mouseX:    0,   // lerped mouse X
-    mouseY:    0,   // lerped mouse Y
-  });
+  /* ── Sharper, higher-contrast particle texture ── */
+  const starTexture = useMemo(() => {
+    const size = 128;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const center = size / 2;
+      const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
+
+      // Much tighter falloff — solid core, fast dropoff, minimal halo
+      gradient.addColorStop(0.0, 'rgba(255,255,255,1)');
+      gradient.addColorStop(0.25, 'rgba(255,255,255,1)');
+      gradient.addColorStop(0.4, 'rgba(255,255,255,0.85)');
+      gradient.addColorStop(0.5, 'rgba(255,255,255,0.35)');
+      gradient.addColorStop(0.65, 'rgba(255,255,255,0.08)');
+      gradient.addColorStop(1.0, 'rgba(255,255,255,0)');
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    return texture;
+  }, []);
 
   /* ── Main spiral arms ── */
   const mainGeo = useMemo(() => {
-    const COUNT    = 100_000;
+    const COUNT    = 25_000;
     const BRANCHES = 5;
     const SPIN     = 1.8;
     const RADIUS   = 16;
     const positions = new Float32Array(COUNT * 3);
     const colors    = new Float32Array(COUNT * 3);
+    const sizes     = new Float32Array(COUNT);
 
-    const c1 = new THREE.Color('#ff6b35');
-    const c2 = new THREE.Color('#4361ee');
-    const c3 = new THREE.Color('#0a1445');
+    // Higher-contrast, more saturated colors
+    const c1 = new THREE.Color('#ff7a3d'); // hot orange core
+    const c2 = new THREE.Color('#5577ff'); // vivid blue
+    const c3 = new THREE.Color('#1a1055'); // deep purple-blue outer
 
     for (let i = 0; i < COUNT; i++) {
-      const i3     = i * 3;
+      const i3 = i * 3;
       const r      = Math.random() * RADIUS;
       const spin   = r * SPIN;
       const branch = ((i % BRANCHES) / BRANCHES) * Math.PI * 2;
@@ -51,20 +69,32 @@ function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
 
       const t   = r / RADIUS;
       const col = t < 0.5 ? c1.clone().lerp(c2, t * 2) : c2.clone().lerp(c3, (t - 0.5) * 2);
-      colors[i3] = col.r; colors[i3 + 1] = col.g; colors[i3 + 2] = col.b;
+
+      // Bimodal brightness: many dim, some very bright → more contrast
+      const brightness = Math.random() < 0.15
+        ? 1.4 + Math.random() * 0.6   // bright stars (15%)
+        : 0.5 + Math.random() * 0.5;  // dim stars (85%)
+
+      colors[i3]     = col.r * brightness;
+      colors[i3 + 1] = col.g * brightness;
+      colors[i3 + 2] = col.b * brightness;
+
+      sizes[i] = 0.4 + Math.random() * 1.4;
     }
 
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
+    geo.setAttribute('aSize',    new THREE.BufferAttribute(sizes,     1));
     return geo;
   }, []);
 
   /* ── Bright galactic core ── */
   const coreGeo = useMemo(() => {
-    const COUNT     = 12_000;
+    const COUNT     = 4_000;
     const positions = new Float32Array(COUNT * 3);
     const colors    = new Float32Array(COUNT * 3);
+    const sizes     = new Float32Array(COUNT);
     const warm      = new THREE.Color('#ffd5a0');
     const hot       = new THREE.Color('#ffffff');
 
@@ -79,23 +109,30 @@ function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
       positions[i3 + 2] = Math.sin(theta) * Math.cos(phi) * r;
 
       const col = hot.clone().lerp(warm, r / 2.8);
-      colors[i3] = col.r; colors[i3 + 1] = col.g; colors[i3 + 2] = col.b;
+      const brightness = 0.9 + Math.random() * 0.5;
+      colors[i3]     = col.r * brightness;
+      colors[i3 + 1] = col.g * brightness;
+      colors[i3 + 2] = col.b * brightness;
+
+      sizes[i] = 0.7 + Math.random() * 1.6;
     }
 
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
+    geo.setAttribute('aSize',    new THREE.BufferAttribute(sizes,     1));
     return geo;
   }, []);
 
   /* ── Distant background star dust ── */
   const dustGeo = useMemo(() => {
-    const COUNT     = 15_000;
+    const COUNT     = 3_500;
     const positions = new Float32Array(COUNT * 3);
     const colors    = new Float32Array(COUNT * 3);
+    const sizes     = new Float32Array(COUNT);
 
     for (let i = 0; i < COUNT; i++) {
-      const i3    = i * 3;
+      const i3 = i * 3;
       const theta = Math.random() * Math.PI * 2;
       const phi   = Math.acos(2 * Math.random() - 1);
       const r     = 20 + Math.random() * 30;
@@ -104,55 +141,98 @@ function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
       positions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       positions[i3 + 2] = r * Math.cos(phi);
 
-      const brightness  = 0.4 + Math.random() * 0.6;
-      colors[i3]     = brightness * 0.8;
-      colors[i3 + 1] = brightness * 0.85;
+      // Bimodal: most dim, a few pop bright
+      const brightness = Math.random() < 0.1
+        ? 1.1 + Math.random() * 0.4
+        : 0.3 + Math.random() * 0.4;
+
+      colors[i3]     = brightness * 0.85;
+      colors[i3 + 1] = brightness * 0.9;
       colors[i3 + 2] = brightness;
+
+      sizes[i] = 0.3 + Math.random() * 1.0;
     }
 
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
+    geo.setAttribute('aSize',    new THREE.BufferAttribute(sizes,     1));
     return geo;
   }, []);
 
-  // delta is provided by r3f – seconds since last frame, framerate-independent
-  useFrame((state, delta) => {
-    // Clamp delta to avoid huge jumps after tab-switch / sleep
-    const dt = Math.min(delta, 0.1);
-    const t  = state.clock.getElapsedTime();
-    const s  = smooth.current;
+  /* ── Custom shader: normal blending for crisp, less-glowy particles ── */
+  const createStarMaterial = (baseSize: number) => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uTexture: { value: starTexture },
+        uBaseSize: { value: baseSize },
+        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+      },
+      vertexShader: `
+        attribute float aSize;
+        varying vec3 vColor;
+        uniform float uBaseSize;
+        uniform float uPixelRatio;
 
-    /* ── Galaxy rotation (unchanged – driven by elapsed time, always smooth) ── */
+        void main() {
+          vColor = color;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+          gl_PointSize = uBaseSize * aSize * uPixelRatio * (1.0 / -mvPosition.z);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D uTexture;
+        varying vec3 vColor;
+
+        void main() {
+          vec4 tex = texture2D(uTexture, gl_PointCoord);
+          if (tex.a < 0.15) discard;
+
+          // Sharpen alpha with a power curve — harder edges, less halo
+          float alpha = pow(tex.a, 1.8);
+
+          // Boost color contrast — push midtones toward extremes
+          vec3 color = vColor * tex.rgb;
+          color = pow(color, vec3(0.9)); // slight gamma boost for punch
+
+          gl_FragColor = vec4(color, alpha);
+        }
+      `,
+      vertexColors: true,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.NormalBlending, // less glowy than additive
+    });
+  };
+
+  const mainMat = useMemo(() => createStarMaterial(38), [starTexture]);
+  const coreMat = useMemo(() => createStarMaterial(55), [starTexture]);
+  const dustMat = useMemo(() => createStarMaterial(28), [starTexture]);
+
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime();
+
     if (mainRef.current) mainRef.current.rotation.y = t * 0.025;
     if (coreRef.current) coreRef.current.rotation.y = t * 0.05;
 
-    /* ── Smooth the raw scroll progress ── */
-    const maxScroll  = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
-    const rawPct     = Math.min(scrollRef.current / maxScroll, 1);
-    // Slow decay (0.06 at 60fps ≈ very gentle glide)
-    s.scrollPct = THREE.MathUtils.lerp(s.scrollPct, rawPct, dlerp(0.06, dt));
+    const scroll    = scrollRef.current;
+    const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+    const pct       = Math.min(scroll / maxScroll, 1);
 
-    /* ── Smooth the mouse ── */
-    // state.mouse is already normalised –1…1; reduce influence to avoid jitter
-    s.mouseX = THREE.MathUtils.lerp(s.mouseX, state.mouse.x, dlerp(0.08, dt));
-    s.mouseY = THREE.MathUtils.lerp(s.mouseY, state.mouse.y, dlerp(0.08, dt));
+    const mouseX = (state.mouse.x * 2);
+    const mouseY = (state.mouse.y * 2);
 
-    /* ── Scroll-driven camera targets ── */
-    const pct      = s.scrollPct;
-    const targetZ  = THREE.MathUtils.lerp(24,  2.5, pct);
-    const targetY  = THREE.MathUtils.lerp(6,   0.2, pct) + s.mouseY * 0.1;
-    const targetX  = s.mouseX * 0.25;
-    const targetFov = THREE.MathUtils.lerp(55, 95,  pct);
+    const targetZ   = THREE.MathUtils.lerp(24, 2.5, pct);
+    const targetY   = THREE.MathUtils.lerp(6, 0.2, pct);
+    const targetFov = THREE.MathUtils.lerp(55, 95, pct);
 
-    /* ── Apply with framerate-independent lerp ── */
-    const camSpeed = dlerp(0.035, dt);
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX,   camSpeed);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY,   camSpeed);
-    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ,   camSpeed);
+    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.035);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY + (mouseY * 0.1), 0.035);
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouseX * 0.25, 0.035);
 
     const cam = camera as THREE.PerspectiveCamera;
-    cam.fov   = THREE.MathUtils.lerp(cam.fov, targetFov, camSpeed);
+    cam.fov   = THREE.MathUtils.lerp(cam.fov, targetFov, 0.035);
     cam.updateProjectionMatrix();
 
     camera.lookAt(0, 0, 0);
@@ -160,23 +240,9 @@ function Galaxy({ scrollRef }: { scrollRef: React.MutableRefObject<number> }) {
 
   return (
     <>
-      {/* Background star dust */}
-      <points ref={dustRef} geometry={dustGeo}>
-        <pointsMaterial size={0.06} sizeAttenuation depthWrite={false}
-          vertexColors blending={THREE.AdditiveBlending} />
-      </points>
-
-      {/* Main spiral arms */}
-      <points ref={mainRef} geometry={mainGeo}>
-        <pointsMaterial size={0.016} sizeAttenuation depthWrite={false}
-          vertexColors blending={THREE.AdditiveBlending} />
-      </points>
-
-      {/* Dense core */}
-      <points ref={coreRef} geometry={coreGeo}>
-        <pointsMaterial size={0.028} sizeAttenuation depthWrite={false}
-          vertexColors blending={THREE.AdditiveBlending} />
-      </points>
+      <points ref={dustRef} geometry={dustGeo} material={dustMat} />
+      <points ref={mainRef} geometry={mainGeo} material={mainMat} />
+      <points ref={coreRef} geometry={coreGeo} material={coreMat} />
     </>
   );
 }
@@ -195,10 +261,10 @@ export default function ThreeCanvas() {
       <Canvas
         camera={{ position: [0, 5, 20], fov: 58 }}
         dpr={[1, 2]}
-        gl={{ antialias: false, powerPreference: 'high-performance' }}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
       >
         <color attach="background" args={['#020714']} />
-        <fog attach="fog" args={['#020714', 28, 42]} />
+        <fog attach="fog" args={['#020714', 32, 48]} />
         <Galaxy scrollRef={scrollRef} />
       </Canvas>
     </div>
